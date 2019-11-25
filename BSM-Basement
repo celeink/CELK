@@ -1,0 +1,38 @@
+from time import time
+from math import log, sqrt, exp
+from scipy import stats
+
+#赋值
+S_0=100.0    #股票或指数初始的价格;
+K=105        #行权价格
+T=1.0        #期权的到期年限(距离到期日时间间隔)
+r=0.05       #无风险利率
+sigma=0.30    #波动率(收益标准差)
+start=time()
+
+# 期权的定价计算,根据BSM公式
+# When there is carry cost, d_1=log(S_0 / K) + (r - carry cost + 0.5 *sigma **2) *T)/(sigma * sqrt(T)
+# Call-Put Parity: p + S = PV(X) + C; PV(X)=e(-rT)X
+# and in carry cost : p + Se(-yt) = C + e(-rT)X, e()=continous conpounded rate
+# Carry cost在股票或股指上体现为分红率
+def bsm_call_value(S_0, K, T, r, sigma):
+    S_0 = float(S_0)
+    d_1 = (log(S_0 / K) + (r + 0.5 *sigma **2) *T)/(sigma * sqrt(T))
+    d_2 = d_1-sigma * sqrt(T)
+    C_0 = S_0 * stats.norm.cdf(d_1, 0.0, 1.0) - exp(-r * T) * K * stats.norm.cdf(d_2, 0.0, 1.0)
+    return C_0
+
+def bsm_put_value(S_0, K, T, r, sigma):
+    S_0=float(S_0)
+    d_1=(log(S_0 / K) + (r + 0.5 *sigma **2) *T)/(sigma * sqrt(T))
+    d_2=d_1-sigma * sqrt(T)
+    P_0=exp(-r * T) * K * stats.norm.cdf(-d_2, 0.0, 1.0)-S_0 * stats.norm.cdf(-d_1, 0.0, 1.0)
+    return P_0
+
+#计算时间
+total_time=time()-start
+
+#打印到期期权价值
+print('European Call Option Value %.6f'%  bsm_call_value(S_0, K, T, r, sigma))
+print('European Put Option Value %.6f'%  bsm_put_value(S_0, K, T, r, sigma))
+print('total time is %.6f seconds'% total_time)
